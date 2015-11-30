@@ -1,6 +1,7 @@
 import numpy as np
 from l2_distance import l2_distance
 from scipy.stats import mode
+from sklearn import neighbors
 
 def run_knn(k, train_data, train_labels, valid_data):
     """Uses the supplied training inputs and labels to make
@@ -27,18 +28,13 @@ def run_knn(k, train_data, train_labels, valid_data):
                       for the validation data.
     """
 
-    dist = l2_distance(valid_data.T, train_data.T)
-    print dist
-    nearest = np.argsort(dist, axis=1)[:,:k]
+    #print train_data.shape
+    #print train_labels.shape
+    #print valid_data.shape
+    clf = neighbors.KNeighborsClassifier(k, weights='uniform')
+    clf.fit(train_data, train_labels.ravel())
 
-    train_labels = train_labels.reshape(-1)
-    valid_labels = train_labels[nearest]
-    #print valid_labels
-
-    # note this only works for binary labels
-    # valid_labels = (np.mean(valid_labels, axis=1) >= 0.5).astype(np.int)
-    # valid_labels = valid_labels.reshape(-1,1)
-    valid_labels = [mode(i)[0][0] for i in valid_labels]
+    valid_labels = clf.predict(valid_data)
     #print valid_labels
 
     return valid_labels
