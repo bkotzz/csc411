@@ -14,6 +14,8 @@ def compute_classification_rate(k_values, train_inputs, train_targets, inputs, t
 	targets_mod = targets.ravel()
 	train_targets_mod = train_targets.ravel()
 
+	best_label_rate = 0
+
 	for k in k_values:
 
 		clf = neighbors.KNeighborsClassifier(k, weights='uniform')
@@ -26,7 +28,10 @@ def compute_classification_rate(k_values, train_inputs, train_targets, inputs, t
 		#print num_correct_labels
 		c_rate.append(num_correct_labels / float(len(targets_mod)))
 
-	return c_rate
+		if c_rate[-1] > best_label_rate:
+			best_labels = labels
+
+	return c_rate, best_labels
 
 
 if __name__ == '__main__':
@@ -36,7 +41,7 @@ if __name__ == '__main__':
 	k_values = [1, 3, 5, 7, 9, 11, 13, 15] #, 17, 19, 21, 23, 25]
 	data_split = 2000
 	limit = -1
-	test_c_rate  = compute_classification_rate(k_values, images[:, :, :data_split], labels[:data_split], images[:, :, data_split:limit], labels[data_split:limit])
+	test_c_rate, best_labels  = compute_classification_rate(k_values, images[:, :, :data_split], labels[:data_split], images[:, :, data_split:limit], labels[data_split:limit])
 
 	print test_c_rate
 	

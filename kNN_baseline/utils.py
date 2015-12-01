@@ -31,3 +31,14 @@ def load_test():
     images = mat['public_test_images']
 
     return images
+
+
+def create_submission(prediction):
+    file = open("submission.dat", "w+")
+    file.write("Id,Prediction")
+
+    for i in xrange(len(prediction)):
+        file.write(str(i) + "," + str(prediction[i]))
+
+    file.close()
+    
