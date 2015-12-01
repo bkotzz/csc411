@@ -64,5 +64,4 @@ if __name__ == '__main__':
     #validation(images, labels)
     test(labels, images, test_im)
 
-
         
