@@ -42,3 +42,5 @@ def create_submission(prediction):
 
     file.close()
 
+def rearrange(a): return a.reshape((a.shape[0] * a.shape[1], a.shape[2])).T
+

@@ -4,12 +4,10 @@ from utils import *
 import matplotlib.pyplot as plt
 from sklearn import neighbors
 
-def rearrange(a): return a.reshape((a.shape[0] * a.shape[1], a.shape[2])).T
-
-def make_prediction(k, train_inputs, train_targets, inputs):
+def make_prediction(k, train_inputs, train_targets, inputs, targets):
     clf = neighbors.KNeighborsClassifier(k, weights='uniform')
     clf.fit(train_inputs, train_targets)
-    return clf.predict(inputs)
+    return clf.score(inputs, targets)
 
 def compute_classification_rate(k_values, train_inputs, train_targets, inputs, targets):
     c_rate = []
@@ -20,28 +18,18 @@ def compute_classification_rate(k_values, train_inputs, train_targets, inputs, t
     targets_mod = targets.ravel()
     train_targets_mod = train_targets.ravel()
 
-    best_label_rate = 0
-
     for k in k_values:
 
-        labels = make_prediction(k, train_inputs_mod, train_targets_mod, inputs_mod)
-        #print targets
-        #print labels
-        num_correct_labels = np.sum(targets_mod == labels)
-        #print num_correct_labels
-        c_rate.append(num_correct_labels / float(len(targets_mod)))
+        score = make_prediction(k, train_inputs_mod, train_targets_mod, inputs_mod, targets_mod)
+        c_rate.append(score)
 
-        if c_rate[-1] > best_label_rate:
-            best_labels = labels
-
-    return c_rate, best_labels
+    return c_rate
 
 def validation(images, labels):
     k_values = [1, 3, 5, 7, 9, 11, 13, 15] #, 17, 19, 21, 23, 25]
-    data_split = 2800
+    data_split = 2200
     limit = -1
-    test_c_rate, best_labels  = compute_classification_rate(k_values, images[:, :, :data_split], labels[:data_split], images[:, :, data_split:limit], labels[data_split:limit])
-    #create_submission(best_labels)
+    test_c_rate = compute_classification_rate(k_values, images[:, :, :data_split], labels[:data_split], images[:, :, data_split:limit], labels[data_split:limit])
 
     print test_c_rate
     
@@ -61,7 +49,7 @@ if __name__ == '__main__':
     labels, ids, images = load_labeled()
     test_im = load_test()
 
-    #validation(images, labels)
-    test(labels, images, test_im)
+    validation(images, labels)
+    #test(labels, images, test_im)
 
         
