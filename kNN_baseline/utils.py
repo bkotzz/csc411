@@ -34,11 +34,11 @@ def load_test():
 
 
 def create_submission(prediction):
-    file = open("submission.dat", "w+")
-    file.write("Id,Prediction")
+    file = open("submission.csv", "w+")
+    file.write("Id,Prediction\n")
 
     for i in xrange(len(prediction)):
-        file.write(str(i) + "," + str(prediction[i]))
+        file.write(str(i + 1) + "," + str(prediction[i]) + "\n")
 
     file.close()
-    
+
