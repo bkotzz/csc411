@@ -16,21 +16,21 @@ def load_labeled():
     identities = mat['tr_identity']
     images = mat['tr_images']
 
-    return labels, identities, images
+    return labels.ravel(), identities.ravel(), rearrange(images)
 
 def load_unlabeled():
     """Loads unlabeled data."""
     mat = loadmat('../unlabeled_images')
     images = mat['unlabeled_images']
 
-    return images
+    return rearrange(images)
 
 def load_test():
     """Loads test data."""
     mat = loadmat('../public_test_images')
     images = mat['public_test_images']
 
-    return images
+    return rearrange(images)
 
 
 def create_submission(prediction):

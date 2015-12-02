@@ -31,9 +31,9 @@ def logistic_validation(images, labels, ids):
     return validation_score(images, labels, logistic, ids)
 
 def validation_score(images, labels, model, ids):
-    lkf = LabelKFold(ids, n_folds=2) # 71% with 10 folds
+    lkf = LabelKFold(ids, n_folds=2) # 71% with 10 folds, 68% with 2 folds
 
-    return cross_validation.cross_val_score(model, images, labels, cv=lkf) # 3 gets 61%
+    return cross_validation.cross_val_score(model, images, labels, cv=lkf) # cv=3 gets 61%
 
 def validation(images, labels, model):
     X_train, X_test, y_train, y_test = cross_validation.train_test_split(images, labels, test_size=0.3, random_state=0)
@@ -44,8 +44,6 @@ if __name__ == '__main__':
     labels, ids, images = load_labeled()
     test_im = load_test()
 
-    testim_mod = rearrange(test_im)
-
-    #logistic_test(images_mod, labels_mod, testim_mod)
-    print logistic_validation(rearrange(images), labels.ravel(), ids.ravel())
-    #print ridge_validation(images_mod, labels_mod)
+    #logistic_test(images, labels, testim)
+    print logistic_validation(images, labels, ids)
+    #print ridge_validation(images, labels)

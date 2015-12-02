@@ -28,7 +28,7 @@ def svm_linear_validation(images, labels, ids):
 
         model_scores = []
         for C in [0.1, 0.5, 1.0, 1.5, 2.0]:
-            model = svm.SVC(kernel='linear', C=C).fit(X, y) # high 60s
+            model = svm.SVC(kernel='linear', C=C).fit(X, y) # high 60s for all C
             model_scores.append(validation_score(model, X_test, y_test))
         scores.append(model_scores)
 
@@ -74,5 +74,5 @@ if __name__ == '__main__':
 
     testim_mod = rearrange(test_im)
 
-    #logistic_test(images_mod, labels_mod, testim_mod)
-    print svm_linear_validation(rearrange(images), labels.ravel(), ids.ravel())
+    #logistic_test(images, labels, testim)
+    print svm_linear_validation(images, labels, ids)

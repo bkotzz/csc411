@@ -36,14 +36,14 @@ def validation(images, labels):
     plt.show()
 
 def test(labels, images, test_im):
-    test_labels = make_prediction(5, rearrange(images), labels.ravel(), rearrange(test_im))
+    test_labels = make_prediction(5, images, labels, test_im)
     create_submission(test_labels)
 
 if __name__ == '__main__':
     labels, ids, images = load_labeled()
     test_im = load_test()
 
-    validation(rearrange(images), labels.ravel())
+    validation(images, labels)
     #test(labels, images, test_im)
 
         
