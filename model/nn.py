@@ -12,17 +12,14 @@ def InitNN(num_inputs, num_hiddens, num_outputs):
   b2 = np.zeros((num_outputs, 1))
   return W1, W2, b1, b2
 
-def LoadData(index):
+def LoadData():
   labels, ids, images = load_labeled()
 
   X_train, X_test, y_train, y_test = cross_validation.train_test_split(images, labels, test_size=0.3, random_state=0)
 
-  y_train = (y_train == index) * 1
-  y_test = (y_test == index) * 1
-
   return X_train.T, X_test.T, y_train.T, y_test.T
 
-def TrainNN(num_hiddens, eps, momentum, num_epochs, index):
+def TrainNN(num_hiddens, eps, momentum, num_epochs, inputs_train, target_train, inputs_valid, index):
   """Trains a single hidden layer NN.
 
   Inputs:
@@ -40,7 +37,7 @@ def TrainNN(num_hiddens, eps, momentum, num_epochs, index):
     valid_error: Validation error at at epoch.
   """
 
-  inputs_train, inputs_valid, target_train, target_valid = LoadData(index)
+  target_train = (target_train == index) * 1
 
   W1, W2, b1, b2 = InitNN(inputs_train.shape[0], num_hiddens, target_train.shape[0])
   dW1 = np.zeros(W1.shape)
@@ -48,9 +45,7 @@ def TrainNN(num_hiddens, eps, momentum, num_epochs, index):
   db1 = np.zeros(b1.shape)
   db2 = np.zeros(b2.shape)
   train_error_ce = []
-  valid_error_ce = []
   train_error_rate = []
-  valid_error_rate = []
 
   num_train_cases = inputs_train.shape[1]
   for epoch in xrange(num_epochs):
@@ -90,14 +85,10 @@ def TrainNN(num_hiddens, eps, momentum, num_epochs, index):
     b1 = b1 + db1
     b2 = b2 + db2
 
-    valid_CE, valid_rate = Evaluate(inputs_valid, target_valid, W1, W2, b1, b2)
-
     train_error_ce.append(train_CE)
-    valid_error_ce.append(valid_CE)
     train_error_rate.append(train_rate)
-    valid_error_rate.append(valid_rate)
 
-    sys.stdout.write('\rStep %d Train CE %.5f Validation CE %.5f' % (epoch, train_CE, valid_CE))
+    sys.stdout.write('\rStep %d Train CE %.5f' % (epoch, train_CE))
     sys.stdout.flush()
     if (epoch % 100 == 0):
       sys.stdout.write('\n')
@@ -105,10 +96,9 @@ def TrainNN(num_hiddens, eps, momentum, num_epochs, index):
   sys.stdout.write('\n')
 
   final_train_error, final_train_rate = Evaluate(inputs_train, target_train, W1, W2, b1, b2)
-  final_valid_error, final_valid_rate = Evaluate(inputs_valid, target_valid, W1, W2, b1, b2)
-  print 'Error: Train %.5f Validation %.5f ' % (final_train_error, final_valid_error)
-  print 'Misclassification Rate: Train %.5f Validation %.5f ' % (final_train_rate, final_valid_rate)
-  return W1, W2, b1, b2, train_error_ce, valid_error_ce, train_error_rate, valid_error_rate, inputs_valid, target_valid
+  print 'Error: Train %.5f ' % (final_train_error)
+  print 'Misclassification Rate: Train %.5f ' % (final_train_rate)
+  return MakePred(inputs_valid, W1, W2, b1, b2), train_error_ce, train_error_rate
 
 def Evaluate(inputs, target, W1, W2, b1, b2):
   """Evaluates the model on inputs and target."""
@@ -159,14 +149,43 @@ def LoadModel(modelfile):
   model = np.load(modelfile)
   return model['W1'], model['W2'], model['b1'], model['b2'], model['train_error'], model['valid_error']
 
-def main():
+def MultiClassPred(preds, target):
+  target = target - 1
+
+  N = target.size
+
+  num_correct = 0
+  maximums = preds.max(axis = 0)
+
+  for i in xrange(N):
+    num_correct += (preds[target[i]][i] == maximums[i])
+
+  return num_correct / float(N)
+
+def RunKnn():
   num_hiddens = 10
   eps = 0.01
   momentum = 0
   num_epochs = 30
-  W1, W2, b1, b2, train_error_ce, valid_error_ce, train_error_rate, valid_error_rate, inputs_valid, targets_valid = TrainNN(num_hiddens, eps, momentum, num_epochs, 4)
-  DisplayErrorPlot(train_error_ce, valid_error_ce, 'Cross Entropy')
-  DisplayErrorPlot(train_error_rate, valid_error_rate, 'Classification Error Rate')
+
+  X_train, X_test, y_train, y_test = LoadData()
+
+  preds = np.ndarray(shape = (0, y_test.size))
+  for index in [1, 2, 3, 4, 5, 6, 7]:
+    print 'Model ', index
+    pred, train_error_ce, train_error_rate = TrainNN(num_hiddens, eps, momentum, num_epochs, X_train, y_train, X_test, index)
+    pred_mean = pred.mean(axis = 0)
+    preds = np.vstack((preds, pred_mean)) 
+
+  return preds, y_test
+
+def main():
+  preds, y_test = RunKnn()
+
+  print 'Overall rate: ', MultiClassPred(preds, y_test)
+
+  ##DisplayErrorPlot(train_error_ce, valid_error_ce, 'Cross Entropy')
+  ##DisplayErrorPlot(train_error_rate, valid_error_rate, 'Classification Error Rate')
   # If you wish to save the model for future use :
   # outputfile = 'model.npz'
   # SaveModel(outputfile, W1, W2, b1, b2, train_error, valid_error)
