@@ -19,7 +19,7 @@ def LoadData():
 
   return X_train.T, X_test.T, y_train.T, y_test.T
 
-def TrainNN(num_hiddens, eps, momentum, num_epochs, inputs_train, target_train, inputs_valid, index):
+def TrainNN(num_hiddens, eps, momentum, num_epochs, inputs_train, target_train, inputs_valid, target_valid, index):
   """Trains a single hidden layer NN.
 
   Inputs:
@@ -96,9 +96,10 @@ def TrainNN(num_hiddens, eps, momentum, num_epochs, inputs_train, target_train, 
   sys.stdout.write('\n')
 
   final_train_error, final_train_rate = Evaluate(inputs_train, target_train, W1, W2, b1, b2)
-  print 'Error: Train %.5f ' % (final_train_error)
-  print 'Misclassification Rate: Train %.5f ' % (final_train_rate)
-  return MakePred(inputs_valid, W1, W2, b1, b2), train_error_ce, train_error_rate
+  final_test_error, final_test_rate = Evaluate(inputs_valid, target_valid, W1, W2, b1, b2)
+  print 'Error: Train %.5f Validation %.5f ' % (final_train_error, final_test_error)
+  print 'Misclassification Rate: Train %.5f Validation %.5f ' % (final_train_rate, final_test_rate)
+  return MakePred(inputs_valid, target_valid, W1, W2, b1, b2), train_error_ce, train_error_rate
 
 def Evaluate(inputs, target, W1, W2, b1, b2):
   """Evaluates the model on inputs and target."""
@@ -109,14 +110,15 @@ def Evaluate(inputs, target, W1, W2, b1, b2):
   prediction = 1 / (1 + np.exp(-logit))  # Output prediction.
 
   pred_result = np.abs(prediction - target)
-
+  print pred_result.max()
+  print pred_result.min()
   class_error = np.where(pred_result > 0.5)[1].size / float(prediction.size)
 
   CE = -np.mean(target * np.log(prediction) + (1 - target) * np.log(1 - prediction))
 
   return CE, class_error
 
-def MakePred(inputs, W1, W2, b1, b2):
+def MakePred(inputs, target, W1, W2, b1, b2):
   """Evaluates the model on inputs and target."""
 
   h_input = np.dot(W1.T, inputs) + b1  # Input to hidden layer.
@@ -124,7 +126,7 @@ def MakePred(inputs, W1, W2, b1, b2):
   logit = np.dot(W2.T, h_output) + b2  # Input to output layer.
   prediction = 1 / (1 + np.exp(-logit))  # Output prediction.
 
-  return prediction
+  return np.abs(prediction - target)
 
 def DisplayErrorPlot(train_error, valid_error, y_label):
   plt.figure(1)
@@ -173,8 +175,8 @@ def RunKnn():
   preds = np.ndarray(shape = (0, y_test.size))
   for index in [1, 2, 3, 4, 5, 6, 7]:
     print 'Model ', index
-    pred, train_error_ce, train_error_rate = TrainNN(num_hiddens, eps, momentum, num_epochs, X_train, y_train, X_test, index)
-    pred_mean = pred.mean(axis = 0)
+    pred, train_error_ce, train_error_rate = TrainNN(num_hiddens, eps, momentum, num_epochs, X_train, y_train, X_test, y_test, index)
+    pred_mean = (pred < 0.5).sum(axis = 0)
     preds = np.vstack((preds, pred_mean)) 
 
   return preds, y_test
