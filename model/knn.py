@@ -3,6 +3,7 @@ from plot_digits import *
 from utils import *
 import matplotlib.pyplot as plt
 from sklearn import neighbors
+from sklearn import cross_validation
 
 def make_prediction(k, train_inputs, train_targets, inputs, targets):
     clf = neighbors.KNeighborsClassifier(k, weights='uniform')
@@ -12,24 +13,17 @@ def make_prediction(k, train_inputs, train_targets, inputs, targets):
 def compute_classification_rate(k_values, train_inputs, train_targets, inputs, targets):
     c_rate = []
 
-    #print train_targets
-    train_inputs_mod = rearrange(train_inputs)
-    inputs_mod = rearrange(inputs)
-    targets_mod = targets.ravel()
-    train_targets_mod = train_targets.ravel()
-
     for k in k_values:
 
-        score = make_prediction(k, train_inputs_mod, train_targets_mod, inputs_mod, targets_mod)
+        score = make_prediction(k, train_inputs, train_targets, inputs, targets)
         c_rate.append(score)
 
     return c_rate
 
 def validation(images, labels):
-    k_values = [1, 3, 5, 7, 9, 11, 13, 15] #, 17, 19, 21, 23, 25]
-    data_split = 2200
-    limit = -1
-    test_c_rate = compute_classification_rate(k_values, images[:, :, :data_split], labels[:data_split], images[:, :, data_split:limit], labels[data_split:limit])
+    k_values = [1, 3, 5, 7, 9, 11, 13, 15]
+    X_train, X_test, y_train, y_test = cross_validation.train_test_split(images, labels, test_size=0.3, random_state=0)
+    test_c_rate = compute_classification_rate(k_values, X_train, y_train, X_test, y_test)
 
     print test_c_rate
     
@@ -49,7 +43,7 @@ if __name__ == '__main__':
     labels, ids, images = load_labeled()
     test_im = load_test()
 
-    validation(images, labels)
+    validation(rearrange(images), labels.ravel())
     #test(labels, images, test_im)
 
         

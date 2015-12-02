@@ -3,6 +3,8 @@ from plot_digits import *
 from utils import *
 import matplotlib.pyplot as plt
 from sklearn import linear_model
+from sklearn import cross_validation
+from sklearn.cross_validation import LabelKFold
 
 def ridge_validation(images, labels):
  #   c_rate = []
@@ -23,19 +25,18 @@ def logistic_test(images, labels, test_images):
 def test(images, labels, test_images, model):
     return model.fit(images, labels).predict(test_images)
 
-def logistic_validation(images, labels):
+def logistic_validation(images, labels, ids):
     logistic = linear_model.LogisticRegression()
 
-    return validation(images, labels, logistic)
+    return validation_score(images, labels, logistic, ids)
+
+def validation_score(images, labels, model, ids):
+    lkf = LabelKFold(ids, n_folds=2) # 71% with 10 folds
+
+    return cross_validation.cross_val_score(model, images, labels, cv=lkf) # 3 gets 61%
 
 def validation(images, labels, model):
-    n_samples = len(labels)
-
-    X_train = images_mod[:0.9 * n_samples]
-    y_train = labels_mod[:0.9 * n_samples]
-
-    X_test = images_mod[0.9 * n_samples:]
-    y_test = labels_mod[0.9 * n_samples:]
+    X_train, X_test, y_train, y_test = cross_validation.train_test_split(images, labels, test_size=0.3, random_state=0)
 
     return model.fit(X_train, y_train).score(X_test, y_test)
 
@@ -43,10 +44,8 @@ if __name__ == '__main__':
     labels, ids, images = load_labeled()
     test_im = load_test()
 
-    images_mod = rearrange(images)
-    labels_mod = labels.ravel()
     testim_mod = rearrange(test_im)
 
-    logistic_test(images_mod, labels_mod, testim_mod)
-    #print logistic_validation(images, labels)
+    #logistic_test(images_mod, labels_mod, testim_mod)
+    print logistic_validation(rearrange(images), labels.ravel(), ids.ravel())
     #print ridge_validation(images_mod, labels_mod)
