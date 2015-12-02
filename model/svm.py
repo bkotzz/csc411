@@ -72,7 +72,5 @@ if __name__ == '__main__':
     labels, ids, images = load_labeled()
     test_im = load_test()
 
-    testim_mod = rearrange(test_im)
-
     #logistic_test(images, labels, testim)
     print svm_linear_validation(images, labels, ids)

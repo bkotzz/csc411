@@ -12,7 +12,7 @@ def plot_digits(digit_array, start_inc, end_exc):
     """
 
     for i in xrange(start_inc, end_exc):
-        plt.imshow(digit_array[:, :, i])
+        plt.imshow(digit_array[i].reshape(32, 32))
         plt.show()
 
 
