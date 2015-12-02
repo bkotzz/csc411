@@ -1,17 +1,28 @@
 from utils import *
 import sys
 import matplotlib.pyplot as plt
+from sklearn import cross_validation
 plt.ion()
 
 def InitNN(num_inputs, num_hiddens, num_outputs):
   """Initializes NN parameters."""
-  W1 = 0.01 * np.random.randn(num_inputs, num_hiddens)
-  W2 = 0.01 * np.random.randn(num_hiddens, num_outputs)
+  W1 = 0.0001 * np.random.randn(num_inputs, num_hiddens)
+  W2 = 0.0001 * np.random.randn(num_hiddens, num_outputs)
   b1 = np.zeros((num_hiddens, 1))
   b2 = np.zeros((num_outputs, 1))
   return W1, W2, b1, b2
 
-def TrainNN(num_hiddens, eps, momentum, num_epochs):
+def LoadData(index):
+  labels, ids, images = load_labeled()
+
+  X_train, X_test, y_train, y_test = cross_validation.train_test_split(images, labels, test_size=0.3, random_state=0)
+
+  y_train = (y_train == index) * 1
+  y_test = (y_test == index) * 1
+
+  return X_train.T, X_test.T, y_train.T, y_test.T
+
+def TrainNN(num_hiddens, eps, momentum, num_epochs, index):
   """Trains a single hidden layer NN.
 
   Inputs:
@@ -29,7 +40,7 @@ def TrainNN(num_hiddens, eps, momentum, num_epochs):
     valid_error: Validation error at at epoch.
   """
 
-  inputs_train, inputs_valid, inputs_test, target_train, target_valid, target_test = LoadData('digits.npz')
+  inputs_train, inputs_valid, target_train, target_valid = LoadData(index)
 
   W1, W2, b1, b2 = InitNN(inputs_train.shape[0], num_hiddens, target_train.shape[0])
   dW1 = np.zeros(W1.shape)
@@ -95,10 +106,9 @@ def TrainNN(num_hiddens, eps, momentum, num_epochs):
 
   final_train_error, final_train_rate = Evaluate(inputs_train, target_train, W1, W2, b1, b2)
   final_valid_error, final_valid_rate = Evaluate(inputs_valid, target_valid, W1, W2, b1, b2)
-  final_test_error, final_test_rate = Evaluate(inputs_test, target_test, W1, W2, b1, b2)
-  print 'Error: Train %.5f Validation %.5f Test %.5f' % (final_train_error, final_valid_error, final_test_error)
-  print 'Misclassification Rate: Train %.5f Validation %.5f Test %.5f' % (final_train_rate, final_valid_rate, final_test_rate)
-  return W1, W2, b1, b2, train_error_ce, valid_error_ce, train_error_rate, valid_error_rate
+  print 'Error: Train %.5f Validation %.5f ' % (final_train_error, final_valid_error)
+  print 'Misclassification Rate: Train %.5f Validation %.5f ' % (final_train_rate, final_valid_rate)
+  return W1, W2, b1, b2, train_error_ce, valid_error_ce, train_error_rate, valid_error_rate, inputs_valid, target_valid
 
 def Evaluate(inputs, target, W1, W2, b1, b2):
   """Evaluates the model on inputs and target."""
@@ -115,6 +125,16 @@ def Evaluate(inputs, target, W1, W2, b1, b2):
   CE = -np.mean(target * np.log(prediction) + (1 - target) * np.log(1 - prediction))
 
   return CE, class_error
+
+def MakePred(inputs, W1, W2, b1, b2):
+  """Evaluates the model on inputs and target."""
+
+  h_input = np.dot(W1.T, inputs) + b1  # Input to hidden layer.
+  h_output = 1 / (1 + np.exp(-h_input))  # Output of hidden layer.
+  logit = np.dot(W2.T, h_output) + b2  # Input to output layer.
+  prediction = 1 / (1 + np.exp(-logit))  # Output prediction.
+
+  return prediction
 
 def DisplayErrorPlot(train_error, valid_error, y_label):
   plt.figure(1)
@@ -140,11 +160,11 @@ def LoadModel(modelfile):
   return model['W1'], model['W2'], model['b1'], model['b2'], model['train_error'], model['valid_error']
 
 def main():
-  num_hiddens = 100
-  eps = 0.02
-  momentum = 0.5
-  num_epochs = 1000
-  W1, W2, b1, b2, train_error_ce, valid_error_ce, train_error_rate, valid_error_rate = TrainNN(num_hiddens, eps, momentum, num_epochs)
+  num_hiddens = 10
+  eps = 0.01
+  momentum = 0
+  num_epochs = 30
+  W1, W2, b1, b2, train_error_ce, valid_error_ce, train_error_rate, valid_error_rate, inputs_valid, targets_valid = TrainNN(num_hiddens, eps, momentum, num_epochs, 4)
   DisplayErrorPlot(train_error_ce, valid_error_ce, 'Cross Entropy')
   DisplayErrorPlot(train_error_rate, valid_error_rate, 'Classification Error Rate')
   # If you wish to save the model for future use :
