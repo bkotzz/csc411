@@ -6,39 +6,39 @@ from sklearn import svm
 from sklearn import cross_validation
 from sklearn.cross_validation import LabelKFold
 from sklearn.decomposition import PCA
+from sklearn.grid_search import GridSearchCV
 
-def svm_test(images, labels, test_images):
+def svm_test(X_train, y_train, X_test):
 
-    print 'after pca'
-    #model = svm.SVC(kernel='rbf', gamma=0.7, C=1).fit(images, labels)
-    model = svm.SVC(kernel='poly', degree=3, C=1).fit(images, labels)
-    print 'after svm fit'
-    test_labels = model.predict(test_images)
-    print test_labels
-    print model.score(images, labels)
-    print 'after svm predict'
+    n = 150
+    X_unlabeled = load_unlabeled()
+    X_train_pca, X_test_pca = perform_pca(np.vstack((X_train, X_unlabeled)), X_train, X_test, n)
+
+    param_grid = {'C': [2e2, 3e2, 3.5e2, 4e2, 4.25e2, 4.5e2, 4.75e2, 5e2, 6e2, 7e2], 'gamma': [0.005, 0.00475, 0.0045, 0.00425, 0.004, 0.00375, 0.0035, 0.00325, 0.003, 0.002] }
+    model = GridSearchCV(svm.SVC(kernel='rbf', class_weight='balanced'), param_grid).fit(X_train_pca, y_train)
+    print model.best_params_
+    print 'after fitting'
+    test_labels = model.predict(X_test_pca)
+
     create_submission(test_labels)
 
 def svm_pca_validation(images, labels, ids):
-    lkf = LabelKFold(ids, n_folds=2)
-    x_unlabeled = load_unlabeled()
+    X_train, X_test, y_train, y_test = cross_validation.train_test_split(images, labels, test_size=0.25, random_state=0)
+    X_unlabeled = load_unlabeled()
 
-    scores = []
-    for train, test in lkf:
-        y = labels[train]
-        y_test = labels[test]
+    model_scores = []
+    for n in [150]: #[10, 30, 70, 120, 500]:
+        print n
+        X_train_pca, X_test_pca = perform_pca(np.vstack((X_train, X_unlabeled)), X_train, X_test, n)
+        print 'after pca'
 
-        poly_model_scores = []
-        for n in [10, 30, 70, 120, 500]:
-            print n
-            X, X_test = perform_pca(x_unlabeled, images[train], images[test], n)
-            print 'after pca'
-            poly = svm.SVC(kernel='rbf', gamma=0.7, C=1).fit(X, y)
-            print 'after fitting'
-            poly_model_scores.append(poly.score(X_test, y_test))
-        scores.append(poly_model_scores)
+        param_grid = {'C': [1e1, 1e2, 1e3, 1e4, 1e5], 'gamma': [0.0001, 0.001, 0.01, 0.1] }
+        model = GridSearchCV(svm.SVC(kernel='rbf', class_weight='balanced'), param_grid).fit(X_train_pca, y_train)
+        print model.best_params_
+        print 'after fitting'
+        model_scores.append(model.score(X_test_pca, y_test))
 
-    return scores
+    return model_scores
 
 def svm_poly_validation(images, labels, ids):
     lkf = LabelKFold(ids, n_folds=2)
@@ -91,7 +91,7 @@ def validation(images, labels, model):
     return model.fit(X_train, y_train).score(X_test, y_test)
 
 def perform_pca(fit, transform1, transform2, n):
-    model = PCA(n_components = n, whiten = False)
+    model = PCA(n_components = n, whiten = True)
     model.fit(fit)
 
     return model.transform(transform1), model.transform(transform2)
@@ -110,4 +110,5 @@ if __name__ == '__main__':
 
     #svm_test_pca(images, labels, test_im)
     #print svm_poly_validation(images, labels, ids)
-    print svm_pca_validation(images, labels, ids)
+    #print svm_pca_validation(images, labels, ids)
+    svm_test(images, labels, test_im)
