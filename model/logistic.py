@@ -23,9 +23,28 @@ def logistic_test(images, labels, test_images):
     create_submission(test_labels)
 
 def logistic_validation(images, labels, ids):
-    logistic = linear_model.LogisticRegression()
 
-    return validation_score(images, labels, logistic, ids)
+    l1_scores = []
+    l2_scores = []
+    C_values = [0.01, 0.1, 1, 10]
+
+    for C in C_values:
+        l1 = linear_model.LogisticRegression(C=C, penalty='l1')
+        l2 = linear_model.LogisticRegression(C=C, penalty='l2')
+        l1_scores.append(validation_score(images, labels, l1, ids).max())
+        l2_scores.append(validation_score(images, labels, l2, ids).max())
+    
+    plt.plot(C_values, l1_scores, label='L1 Regularization')
+    plt.plot(C_values, l2_scores, label='L2 Regularization')
+    plt.xlabel('C Values')
+    plt.ylabel('Classification Rate')
+    plt.legend()
+    plt.title('LR Classification Rates for various regularizations')
+    plt.ylim([0, 1])
+    plt.xscale('log')
+    plt.show()
+
+    return l1_scores, l2_scores
 
 def validation_score(images, labels, model, ids):
     lkf = LabelKFold(ids, n_folds=2) # 71% with 10 folds, 68% with 2 folds
@@ -41,6 +60,6 @@ if __name__ == '__main__':
     labels, ids, images = load_labeled()
     test_im = load_test()
 
-    logistic_test(images, labels, test_im)
-    #print logistic_validation(images, labels, ids)
+    #logistic_test(images, labels, test_im)
+    print logistic_validation(images, labels, ids)
     #print ridge_validation(images, labels)

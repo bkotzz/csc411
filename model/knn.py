@@ -21,13 +21,13 @@ def compute_classification_rate(k_values, train_inputs, train_targets, inputs, t
     return c_rate
 
 def validation(images, labels):
-    k_values = [1, 3, 5, 7, 9, 11, 13, 15]
+    k_values = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21]
     X_train, X_test, y_train, y_test = cross_validation.train_test_split(images, labels, test_size=0.3, random_state=0)
     test_c_rate = compute_classification_rate(k_values, X_train, y_train, X_test, y_test)
 
     print test_c_rate
     
-    plt.plot(k_values, test_c_rate, label='Test Set')
+    plt.plot(k_values, test_c_rate, label='Validation Set')
     plt.xlabel('K Values')
     plt.ylabel('Classification Rate')
     plt.legend()
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     labels, ids, images = load_labeled()
     test_im = load_test()
 
-    #validation(images, labels)
-    test(labels, images, test_im)
+    validation(images, labels)
+    #test(labels, images, test_im)
 
         

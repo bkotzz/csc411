@@ -27,37 +27,48 @@ def svm_pca_validation(images, labels, ids):
     X_unlabeled = load_unlabeled()
 
     model_scores = []
-    for n in [150]: #[10, 30, 70, 120, 500]:
+    n_values = [10, 30, 70, 150, 500]
+    for n in n_values:
         print n
         X_train_pca, X_test_pca = perform_pca(np.vstack((X_train, X_unlabeled)), X_train, X_test, n)
         print 'after pca'
 
-        param_grid = {'C': [1e1, 1e2, 1e3, 1e4, 1e5], 'gamma': [0.0001, 0.001, 0.01, 0.1] }
-        model = GridSearchCV(svm.SVC(kernel='rbf', class_weight='balanced'), param_grid).fit(X_train_pca, y_train)
-        print model.best_params_
+        #param_grid = {'C': [1e1, 1e2, 1e3, 1e4, 1e5], 'gamma': [0.0001, 0.001, 0.01, 0.1] }
+        #model = GridSearchCV(svm.SVC(kernel='rbf', class_weight='balanced'), param_grid).fit(X_train_pca, y_train)
+        #print model.best_params_
+        model = svm.SVC(kernel='poly', degree=3, C=10).fit(X_train_pca, y_train)
         print 'after fitting'
         model_scores.append(model.score(X_test_pca, y_test))
 
+    plt.plot(n_values, model_scores, label='Validation Set')
+    plt.xlabel('Number of Components')
+    plt.ylabel('Classification Rate')
+    plt.legend()
+    plt.title('Classification Rates for a Polynomial Kernel')
+    plt.ylim([0, 1])
+    plt.show()
+
     return model_scores
 
-def svm_poly_validation(images, labels, ids):
+def svm_linear_validation(images, labels, ids):
     lkf = LabelKFold(ids, n_folds=2)
 
-    scores = []
-    for train, test in lkf:
-        X = images[train]
-        y = labels[train]
+    model_scores = []
+    C_values = [1, 10, 100, 1000, 10000]
+    for C in C_values:
+        model = svm.SVC(kernel='linear', C=C)
+        model_scores.append(cross_validation.cross_val_score(model, images, labels, cv=lkf).max())
 
-        X_test = images[test]
-        y_test = labels[test]
+    plt.plot(C_values, model_scores, label='Validation Set')
+    plt.xlabel('C Values')
+    plt.ylabel('Classification Rate')
+    plt.legend()
+    plt.title('Classification Rates for a Linear Kernel')
+    plt.ylim([0, 1])
+    plt.xscale('log')
+    plt.show()
 
-        model_scores = []
-        for C in [1, 10, 100, 1000, 10000]:
-            model = svm.SVC(kernel='rbf', gamma=0.7, C=C).fit(X, y) # high 60s for all C
-            model_scores.append(model.score(X_test, y_test))
-        scores.append(model_scores)
-
-    return scores
+    return model_scores
 
 def svm_validation(images, labels, ids):
 
@@ -65,25 +76,16 @@ def svm_validation(images, labels, ids):
 
     C = 1.0  # SVM regularization parameter
 
-    scores = []
-    for train, test in lkf:
-        X = images[train]
-        y = labels[train]
+    svc = svm.SVC(kernel='linear', C=C) 
+    rbf_svc = svm.SVC(kernel='rbf', gamma=0.7, C=C)
+    poly_svc = svm.SVC(kernel='poly', degree=3, C=C)
+    lin_svc = svm.LinearSVC(C=C)
 
-        X_test = images[test]
-        y_test = labels[test]
+    model_scores = []
+    for model in [svc, rbf_svc, poly_svc, lin_svc]:
+        model_scores.append(cross_validation.cross_val_score(model, images, labels, cv=lkf).max())
 
-        svc = svm.SVC(kernel='linear', C=C).fit(X, y) # high 60s
-        rbf_svc = svm.SVC(kernel='rbf', gamma=0.7, C=C).fit(X, y) # Work bad, 30s
-        poly_svc = svm.SVC(kernel='poly', degree=3, C=C).fit(X, y) # mid 60s
-        lin_svc = svm.LinearSVC(C=C).fit(X, y) # mid 60s
-
-        model_scores = []
-        for model in [svc, rbf_svc, poly_svc, lin_svc]:
-            model_scores.append(validation_score(model, X_test, y_test))
-        scores.append(model_scores)
-
-    return scores
+    return model_scores
 
 def validation(images, labels, model):
     X_train, X_test, y_train, y_test = cross_validation.train_test_split(images, labels, test_size=0.3, random_state=0)
@@ -110,5 +112,7 @@ if __name__ == '__main__':
 
     #svm_test_pca(images, labels, test_im)
     #print svm_poly_validation(images, labels, ids)
-    #print svm_pca_validation(images, labels, ids)
-    svm_test(images, labels, test_im)
+    #print svm_linear_validation(images, labels, ids)
+    print svm_pca_validation(images, labels, ids)
+    #print svm_validation(images, labels, ids)
+    #svm_test(images, labels, test_im)
