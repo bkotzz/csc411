@@ -19,11 +19,8 @@ def ridge_validation(images, labels):
 def logistic_test(images, labels, test_images):
     logistic = linear_model.LogisticRegression()
 
-    test_labels = test(images, labels, test_images, logistic)
+    test_labels = logistic.fit(images, labels).predict(test_images)
     create_submission(test_labels)
-
-def test(images, labels, test_images, model):
-    return model.fit(images, labels).predict(test_images)
 
 def logistic_validation(images, labels, ids):
     logistic = linear_model.LogisticRegression()
@@ -44,6 +41,6 @@ if __name__ == '__main__':
     labels, ids, images = load_labeled()
     test_im = load_test()
 
-    #logistic_test(images, labels, testim)
-    print logistic_validation(images, labels, ids)
+    logistic_test(images, labels, test_im)
+    #print logistic_validation(images, labels, ids)
     #print ridge_validation(images, labels)

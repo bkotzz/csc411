@@ -6,14 +6,11 @@ from sklearn import svm
 from sklearn import cross_validation
 from sklearn.cross_validation import LabelKFold
 
-def logistic_test(images, labels, test_images):
-    logistic = linear_model.LogisticRegression()
+def svm_test(images, labels, test_images):
+    model = svm.SVC(kernel='linear').fit(images, labels)
 
-    test_labels = test(images, labels, test_images, logistic)
+    test_labels = model.predict(test_images)
     create_submission(test_labels)
-
-def test(images, labels, test_images, model):
-    return model.fit(images, labels).predict(test_images)
 
 def svm_linear_validation(images, labels, ids):
     lkf = LabelKFold(ids, n_folds=2)
@@ -72,5 +69,5 @@ if __name__ == '__main__':
     labels, ids, images = load_labeled()
     test_im = load_test()
 
-    #logistic_test(images, labels, testim)
-    print svm_linear_validation(images, labels, ids)
+    svm_test(images, labels, test_im)
+    #print svm_linear_validation(images, labels, ids)
