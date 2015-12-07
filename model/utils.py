@@ -38,7 +38,10 @@ def create_submission(prediction):
     file.write("Id,Prediction\n")
 
     for i in xrange(len(prediction)):
-        file.write(str(i + 1) + "," + str(prediction[i]) + "\n")
+        file.write(str(i + 1) + "," + str(int(prediction[i])) + "\n")
+
+    for i in xrange(len(prediction), 1253):
+        file.write(str(i + 1) + ",0\n")
 
     file.close()
 
