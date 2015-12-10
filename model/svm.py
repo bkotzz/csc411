@@ -10,11 +10,11 @@ from sklearn.grid_search import GridSearchCV
 
 def svm_test(X_train, y_train, X_test):
 
-    n = 150
+    n = 142
     X_unlabeled = load_unlabeled()
-    X_train_pca, X_test_pca = perform_pca(np.vstack((X_train, X_unlabeled)), X_train, X_test, n)
+    X_train_pca, X_test_pca = perform_pca(np.vstack((X_train, X_unlabeled, X_test)), X_train, X_test, n)
 
-    param_grid = {'C': [2e2, 3e2, 3.5e2, 4e2, 4.25e2, 4.5e2, 4.75e2, 5e2, 6e2, 7e2], 'gamma': [0.005, 0.00475, 0.0045, 0.00425, 0.004, 0.00375, 0.0035, 0.00325, 0.003, 0.002] }
+    param_grid = {'C': [1e2, 1.25e2, 1.5e2, 1.75e3, 2e2, 2.25e2, 2.5e2, 2.75e2, 3e2], 'gamma': [0.0045, 0.00425, 0.004, 0.00375, 0.0035, 0.00325, 0.003, 0.002] }
     model = GridSearchCV(svm.SVC(kernel='rbf', class_weight='balanced'), param_grid).fit(X_train_pca, y_train)
     print model.best_params_
     print 'after fitting'
@@ -27,16 +27,15 @@ def svm_pca_validation(images, labels, ids):
     X_unlabeled = load_unlabeled()
 
     model_scores = []
-    n_values = [10, 30, 70, 150, 500]
+    n_values = [130, 140, 150, 160, 170]
     for n in n_values:
         print n
         X_train_pca, X_test_pca = perform_pca(np.vstack((X_train, X_unlabeled)), X_train, X_test, n)
         print 'after pca'
 
-        #param_grid = {'C': [1e1, 1e2, 1e3, 1e4, 1e5], 'gamma': [0.0001, 0.001, 0.01, 0.1] }
-        #model = GridSearchCV(svm.SVC(kernel='rbf', class_weight='balanced'), param_grid).fit(X_train_pca, y_train)
-        #print model.best_params_
-        model = svm.SVC(kernel='poly', degree=3, C=10).fit(X_train_pca, y_train)
+        param_grid = {'C': [400], 'gamma': [0.004] }
+        model = GridSearchCV(svm.SVC(kernel='rbf', class_weight='balanced'), param_grid).fit(X_train_pca, y_train)
+        print model.best_params_
         print 'after fitting'
         model_scores.append(model.score(X_test_pca, y_test))
 
@@ -109,10 +108,14 @@ def svm_test_pca(x_labeled, y_labeled, x_test):
 if __name__ == '__main__':
     labels, ids, images = load_labeled()
     test_im = load_test()
+    hidden_im = load_hidden()
+    total_test = np.vstack((test_im, hidden_im))
+
 
     #svm_test_pca(images, labels, test_im)
     #print svm_poly_validation(images, labels, ids)
     #print svm_linear_validation(images, labels, ids)
-    print svm_pca_validation(images, labels, ids)
+    #print svm_pca_validation(images, labels, ids)
     #print svm_validation(images, labels, ids)
-    #svm_test(images, labels, test_im)
+    svm_test(images, labels, total_test)
+
