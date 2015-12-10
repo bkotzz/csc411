@@ -14,7 +14,7 @@ def svm_test(X_train, y_train, X_test):
     X_unlabeled = load_unlabeled()
     X_train_pca, X_test_pca = perform_pca(np.vstack((X_train, X_unlabeled, X_test)), X_train, X_test, n)
 
-    param_grid = {'C': [1e2, 1.25e2, 1.5e2, 1.75e3, 2e2, 2.25e2, 2.5e2, 2.75e2, 3e2], 'gamma': [0.0045, 0.00425, 0.004, 0.00375, 0.0035, 0.00325, 0.003, 0.002] }
+    param_grid = {'C': [4.65e1, 4.8e1, 5e1, 5.2e1, 5.35e1], 'gamma': [0.00475, 0.004625, 0.0045, 0.004375, 0.00425, 0.004125] }
     model = GridSearchCV(svm.SVC(kernel='rbf', class_weight='balanced'), param_grid).fit(X_train_pca, y_train)
     print model.best_params_
     print 'after fitting'
@@ -27,7 +27,7 @@ def svm_pca_validation(images, labels, ids):
     X_unlabeled = load_unlabeled()
 
     model_scores = []
-    n_values = [130, 140, 150, 160, 170]
+    n_values = [138, 140, 142, 144, 146, 148, 150]
     for n in n_values:
         print n
         X_train_pca, X_test_pca = perform_pca(np.vstack((X_train, X_unlabeled)), X_train, X_test, n)
