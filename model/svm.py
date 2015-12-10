@@ -10,17 +10,19 @@ from sklearn.grid_search import GridSearchCV
 
 def svm_test(X_train, y_train, X_test):
 
-    n = 142
+    n = 150
     X_unlabeled = load_unlabeled()
-    X_train_pca, X_test_pca = perform_pca(np.vstack((X_train, X_unlabeled, X_test)), X_train, X_test, n)
+    X_train_pca, X_test_pca = perform_pca(np.vstack((X_train, X_unlabeled)), X_train, X_test, n)
 
-    param_grid = {'C': [4.65e1, 4.8e1, 5e1, 5.2e1, 5.35e1], 'gamma': [0.00475, 0.004625, 0.0045, 0.004375, 0.00425, 0.004125] }
+    param_grid = {'C': [2e2, 3e2, 3.5e2, 4e2, 4.25e2, 4.5e2, 4.75e2, 5e2, 6e2, 7e2], 'gamma': [0.005, 0.00475, 0.0045, 0.00425, 0.004, 0.00375, 0.0035, 0.00325, 0.003, 0.002] }
     model = GridSearchCV(svm.SVC(kernel='rbf', class_weight='balanced'), param_grid).fit(X_train_pca, y_train)
     print model.best_params_
     print 'after fitting'
     test_labels = model.predict(X_test_pca)
 
     create_submission(test_labels)
+
+    return test_labels
 
 def svm_pca_validation(images, labels, ids):
     X_train, X_test, y_train, y_test = cross_validation.train_test_split(images, labels, test_size=0.25, random_state=0)
@@ -36,6 +38,7 @@ def svm_pca_validation(images, labels, ids):
         param_grid = {'C': [400], 'gamma': [0.004] }
         model = GridSearchCV(svm.SVC(kernel='rbf', class_weight='balanced'), param_grid).fit(X_train_pca, y_train)
         print model.best_params_
+
         print 'after fitting'
         model_scores.append(model.score(X_test_pca, y_test))
 
