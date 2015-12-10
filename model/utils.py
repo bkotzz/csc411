@@ -32,6 +32,12 @@ def load_test():
 
     return rearrange(images)
 
+def load_hidden():
+    """Loads hidden data."""
+    mat = loadmat('../hidden_test_images')
+    images = mat['hidden_test_images']
+
+    return rearrange(images)
 
 def create_submission(prediction):
     file = open("submission.csv", "w+")
